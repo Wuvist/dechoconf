@@ -83,3 +83,15 @@ func decode(configs map[string]interface{}, decodeObj decodeObjFunc, objs ...int
 	return nil
 }
 
+// DecodeFile accept path of toml / yaml config file, and unmarshal to multiple structs
+// according to their prefix tag defined in "-" field
+func DecodeFile(path string, objs ...interface{}) (err error) {
+	if strings.HasSuffix(path, ".toml") {
+		return DecodeTomlFile(path, objs...)
+	}
+	if strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml") {
+		return DecodeYamlFile(path, objs...)
+	}
+
+	return fmt.Errorf("%s doesn't have toml / yaml file extensions", path)
+}
