@@ -1,39 +1,49 @@
 package dechoconf
 
-import "testing"
+import (
+	"testing"
+)
 
-type app struct {
-	_       string `prefix:"app"`
-	Address string
-	Mysql   string
+type DBConfig struct {
+	_        string `prefix:"db"`
+	Host     string
+	Port     int
+	Username string
+	Password string
 }
 
-type backendAPI struct {
-	_   string `prefix:"backend_api"`
+type APIConfig struct {
+	_   string `prefix:"api"`
 	URL string
 }
 
 func TestMultiDecode(t *testing.T) {
 	tomlData := `
-[app]
-address = ":1323"
-mysql = "root:root@tcp(127.0.0.1:3306)/decho"
+[db]
+host = "localhost"
+port = 3306
+username = "root"
+password = ""
 
-[backend_api]
+[api]
 url = "https://localhost:8080"
 `
 
-	var appConfig app
-	var apiConfig backendAPI
-	if err := DecodeToml(tomlData, &appConfig, &apiConfig); err != nil {
+	var dbConfig DBConfig
+	var apiConfig APIConfig
+	if err := DecodeToml(tomlData, &dbConfig, &apiConfig); err != nil {
 		t.Error(err)
 	}
 
-	if appConfig.Address != ":1323" {
-		t.Errorf("Invalid address: %s", appConfig.Address)
+	if dbConfig.Host != "localhost" {
+		t.Errorf("Invalid host: %s", dbConfig.Host)
+	}
+
+	if dbConfig.Port != 3306 {
+		t.Errorf("Invalid port: %d", dbConfig.Port)
 	}
 
 	if apiConfig.URL != "https://localhost:8080" {
-		t.Errorf("Invalid url: %s", appConfig.Address)
+		t.Errorf("Invalid url: %s", apiConfig.URL)
 	}
 }
