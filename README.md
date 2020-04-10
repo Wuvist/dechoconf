@@ -106,6 +106,6 @@ dechoconf depends on :
 * [ ] Setup CI
 * [ ] Confirm go version
 * [X] Support prefix chain
-* [ ] Add yaml support
-* [ ] Prefix validation
+* [X] Add yaml support
+* [X] Prefix validation
 * [ ] Support prefix customization
