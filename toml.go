@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"reflect"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -69,6 +70,28 @@ func DecodeToml(data string, objs ...interface{}) (err error) {
 				}
 
 				delete(prefixToObj, objPrefix)
+			} else if strings.HasPrefix(objPrefix, currentPrefix+".") {
+				currentPrefix = currentPrefix + "."
+				val, ok := v.(map[string]interface{})
+				for ok {
+					ok = false
+
+					for k, v := range val {
+						if objPrefix == currentPrefix+k {
+							if err != decodeObj(v, obj) {
+								return err
+							}
+
+							delete(prefixToObj, objPrefix)
+						} else {
+							if strings.HasPrefix(objPrefix, currentPrefix+k+".") {
+								val, ok = v.(map[string]interface{})
+								currentPrefix = currentPrefix + k + "."
+								break
+							}
+						}
+					}
+				}
 			}
 		}
 	}
