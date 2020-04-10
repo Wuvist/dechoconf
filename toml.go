@@ -25,6 +25,16 @@ func encodeToml(obj interface{}) (result string, err error) {
 	return buf.String(), nil
 }
 
+func decodeObj(tomlVal interface{}, obj interface{}) error {
+	// todo: re-encode & decode is kind of stupid, but works for now
+	tomlString, err := encodeToml(tomlVal)
+	if err != nil {
+		return err
+	}
+	_, err = toml.Decode(tomlString, obj)
+	return err
+}
+
 // DecodeToml accept toml data string, and unmarshal it to multiple structs
 // according to their prefix tag defined in "-" field
 func DecodeToml(data string, objs ...interface{}) (err error) {
@@ -33,7 +43,8 @@ func DecodeToml(data string, objs ...interface{}) (err error) {
 		return err
 	}
 
-	objPrefix := make(map[string]interface{}, len(objs))
+	prefixToObj := make(map[string]interface{}, len(objs))
+	objToPrefix := make(map[interface{}]string, len(objs))
 	for _, obj := range objs {
 		tt := reflect.ValueOf(obj).Elem().Type()
 		prefixTag, found := tt.FieldByName("_")
@@ -42,34 +53,29 @@ func DecodeToml(data string, objs ...interface{}) (err error) {
 		}
 		prefix := prefixTag.Tag.Get(PrefixTagName)
 
-		if o, found := objPrefix[prefix]; found {
+		if o, found := prefixToObj[prefix]; found {
 			return fmt.Errorf("Duplicated prefix %s on struct %s and %s", prefix,
 				reflect.ValueOf(o).Elem().Type().Name(), tt.Name())
 		}
-		objPrefix[prefix] = obj
+		prefixToObj[prefix] = obj
+		objToPrefix[obj] = prefix
 	}
 
-	prefix := ""
-	for k, v := range configs {
-		currentPrefix := prefix + k
-		if obj, ok := objPrefix[currentPrefix]; ok {
-			// todo: re-encode & decode is kind of stupid, but works for now
-			tomlString, err := encodeToml(v)
-			if err != nil {
-				return err
-			}
-			_, err = toml.Decode(tomlString, obj)
-			if err != nil {
-				return err
-			}
+	for currentPrefix, v := range configs {
+		for obj, objPrefix := range objToPrefix {
+			if currentPrefix == objPrefix {
+				if err != decodeObj(v, obj) {
+					return err
+				}
 
-			delete(objPrefix, currentPrefix)
+				delete(prefixToObj, objPrefix)
+			}
 		}
 	}
 
-	if len(objPrefix) > 0 {
+	if len(prefixToObj) > 0 {
 		msg := ""
-		for k, o := range objPrefix {
+		for k, o := range prefixToObj {
 			msg += fmt.Sprintf("No config found for: type %s with prefix [%s]\n",
 				reflect.ValueOf(o).Elem().Type().Name(), k)
 		}
