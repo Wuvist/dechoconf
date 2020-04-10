@@ -62,17 +62,22 @@ func DecodeToml(data string, objs ...interface{}) (err error) {
 		objToPrefix[obj] = prefix
 	}
 
-	for currentPrefix, v := range configs {
+	for configPrefix, configVal := range configs {
+
+	FINDOBJ:
 		for obj, objPrefix := range objToPrefix {
-			if currentPrefix == objPrefix {
-				if err != decodeObj(v, obj) {
+			if configPrefix == objPrefix {
+				if err != decodeObj(configVal, obj) {
 					return err
 				}
 
 				delete(prefixToObj, objPrefix)
-			} else if strings.HasPrefix(objPrefix, currentPrefix+".") {
-				currentPrefix = currentPrefix + "."
-				val, ok := v.(map[string]interface{})
+				continue FINDOBJ
+			} else if strings.HasPrefix(objPrefix, configPrefix+".") {
+				currentPrefix := configPrefix + "."
+				val, ok := configVal.(map[string]interface{})
+
+			MATCHFIELD:
 				for ok {
 					ok = false
 
@@ -83,11 +88,12 @@ func DecodeToml(data string, objs ...interface{}) (err error) {
 							}
 
 							delete(prefixToObj, objPrefix)
+							continue FINDOBJ
 						} else {
 							if strings.HasPrefix(objPrefix, currentPrefix+k+".") {
 								val, ok = v.(map[string]interface{})
 								currentPrefix = currentPrefix + k + "."
-								break
+								continue MATCHFIELD
 							}
 						}
 					}

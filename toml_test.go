@@ -17,6 +17,11 @@ type APIConfig struct {
 	URL string
 }
 
+type BackendAuthConfig struct {
+	_     string `prefix:"service.backend.auth"`
+	Token string
+}
+
 type BackendAPIConfig struct {
 	_   string `prefix:"service.backend.api"`
 	URL string
@@ -65,11 +70,15 @@ password = ""
 	[service.backend]
 		[service.backend.api]
 		url = "https://localhost:8080"
+
+		[service.backend.auth]
+		token = "I love animal crossing!"
 `
 
 	var dbConfig DBConfig
 	var apiConfig BackendAPIConfig
-	if err := DecodeToml(tomlData, &dbConfig, &apiConfig); err != nil {
+	var authConfig BackendAuthConfig
+	if err := DecodeToml(tomlData, &dbConfig, &apiConfig, &authConfig); err != nil {
 		t.Error(err)
 	}
 
@@ -83,5 +92,9 @@ password = ""
 
 	if apiConfig.URL != "https://localhost:8080" {
 		t.Errorf("Invalid url: %s", apiConfig.URL)
+	}
+
+	if authConfig.Token != "I love animal crossing!" {
+		t.Errorf("Invalid token: %s", authConfig.Token)
 	}
 }
