@@ -8,8 +8,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// PrefixTag defines the tagname used in "-" field for prefix
-var PrefixTag string = "prefix"
+// PrefixTagName defines the tagname used in "-" field for prefix
+var PrefixTagName string = "prefix"
 
 func encodeToml(obj interface{}) (result string, err error) {
 	var buf bytes.Buffer
@@ -31,12 +31,13 @@ func DecodeToml(data string, objs ...interface{}) (err error) {
 		return err
 	}
 
+	prefix := ""
 	for k, v := range configs {
 		for _, obj := range objs {
 			tt := reflect.ValueOf(obj).Elem().Type()
-			prefix, _ := tt.FieldByName("_")
+			prefixTag, _ := tt.FieldByName("_")
 
-			if prefix.Tag.Get(PrefixTag) == k {
+			if prefix+k == prefixTag.Tag.Get(PrefixTagName) {
 				// todo: re-encode & decode is kind of stupid, but works for now
 				tomlString, err := encodeToml(v)
 				if err != nil {
