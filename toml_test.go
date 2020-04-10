@@ -27,6 +27,41 @@ type BackendAPIConfig struct {
 	URL string
 }
 
+func TestWrap(t *testing.T) {
+	type db struct {
+		Host     string
+		Port     int
+		Username string
+		Password string
+	}
+
+	type dbWrap struct {
+		_ string `prefix:"db"`
+		db
+	}
+
+	tomlData := `
+[db]
+host = "localhost"
+port = 3306
+username = "root"
+password = ""
+`
+
+	var dbConfig dbWrap
+	if err := DecodeToml(tomlData, &dbConfig); err != nil {
+		t.Error(err)
+	}
+
+	if dbConfig.Host != "localhost" {
+		t.Errorf("Invalid host: %s", dbConfig.Host)
+	}
+
+	if dbConfig.Port != 3306 {
+		t.Errorf("Invalid port: %d", dbConfig.Port)
+	}
+}
+
 func TestMultiDecode(t *testing.T) {
 	tomlData := `
 [db]
