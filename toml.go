@@ -2,6 +2,8 @@ package dechoconf
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"reflect"
 
@@ -31,24 +33,47 @@ func DecodeToml(data string, objs ...interface{}) (err error) {
 		return err
 	}
 
+	objPrefix := make(map[string]interface{}, len(objs))
+	for _, obj := range objs {
+		tt := reflect.ValueOf(obj).Elem().Type()
+		prefixTag, found := tt.FieldByName("_")
+		if !found {
+			return errors.New("No `-` field is found on struct: " + tt.Name())
+		}
+		prefix := prefixTag.Tag.Get(PrefixTagName)
+
+		if o, found := objPrefix[prefix]; found {
+			return fmt.Errorf("Duplicated prefix %s on struct %s and %s", prefix,
+				reflect.ValueOf(o).Elem().Type().Name(), tt.Name())
+		}
+		objPrefix[prefix] = obj
+	}
+
 	prefix := ""
 	for k, v := range configs {
-		for _, obj := range objs {
-			tt := reflect.ValueOf(obj).Elem().Type()
-			prefixTag, _ := tt.FieldByName("_")
-
-			if prefix+k == prefixTag.Tag.Get(PrefixTagName) {
-				// todo: re-encode & decode is kind of stupid, but works for now
-				tomlString, err := encodeToml(v)
-				if err != nil {
-					return err
-				}
-				_, err = toml.Decode(tomlString, obj)
-				if err != nil {
-					return err
-				}
+		currentPrefix := prefix + k
+		if obj, ok := objPrefix[currentPrefix]; ok {
+			// todo: re-encode & decode is kind of stupid, but works for now
+			tomlString, err := encodeToml(v)
+			if err != nil {
+				return err
 			}
+			_, err = toml.Decode(tomlString, obj)
+			if err != nil {
+				return err
+			}
+
+			delete(objPrefix, currentPrefix)
 		}
+	}
+
+	if len(objPrefix) > 0 {
+		msg := ""
+		for k, o := range objPrefix {
+			msg += fmt.Sprintf("No config found for: type %s with prefix [%s]\n",
+				reflect.ValueOf(o).Elem().Type().Name(), k)
+		}
+		return errors.New(msg)
 	}
 
 	return nil
