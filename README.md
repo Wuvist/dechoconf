@@ -93,3 +93,19 @@ func LoadConfigs() (appConfig app, apiConfig backendAPI, err error) {
 ```
 
 When adding new dependency, we just need to change `LoadConfigs` method signature, and pass new parameter to `dechoconf.DecodeTomlFile`. New returned config struct will be automactically wired to dependency.
+
+## Dependency
+
+dechoconf depends on :
+
+* github.com/BurntSushi/toml
+
+## Todo
+
+* [ ] Add version
+* [ ] Setup CI
+* [ ] Confirm go version
+* [ ] Support prefix chain
+* [ ] Add yaml support
+* [ ] Prefix validation
+* [ ] Support prefix customization
