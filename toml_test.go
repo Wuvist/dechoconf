@@ -1,6 +1,9 @@
 package dechoconf
 
 import (
+	"io/ioutil"
+	"log"
+	"os"
 	"testing"
 )
 
@@ -27,7 +30,36 @@ type BackendAPIConfig struct {
 	URL string
 }
 
+func TestException(t *testing.T) {
+	tomlData := `
+	[db]
+	host = "localhost"
+	port = 3306
+	username = "root"
+	password = ""
+
+	[api]
+	url = "https://localhost:8080"
+	`
+
+	type config struct {
+		URL string
+	}
+
+	var apiConfig config
+	err := DecodeToml(tomlData, &apiConfig)
+	if err == nil || err.Error() != "No `-` field is found on struct: config" {
+		t.Error(err)
+	}
+}
+
 func TestWrap(t *testing.T) {
+	file, err := ioutil.TempFile("", "prefix")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.Remove(file.Name())
+
 	type db struct {
 		Host     string
 		Port     int
@@ -48,8 +80,11 @@ username = "root"
 password = ""
 `
 
+	file.WriteString(tomlData)
+	file.Close()
+
 	var dbConfig dbWrap
-	if err := DecodeToml(tomlData, &dbConfig); err != nil {
+	if err := DecodeTomlFile(file.Name(), &dbConfig); err != nil {
 		t.Error(err)
 	}
 
@@ -59,6 +94,52 @@ password = ""
 
 	if dbConfig.Port != 3306 {
 		t.Errorf("Invalid port: %d", dbConfig.Port)
+	}
+}
+
+func TestDuplicate(t *testing.T) {
+	type dbWrap struct {
+		_ string `prefix:"db"`
+	}
+	var dbConfig DBConfig
+	var apiConfig dbWrap
+	err := DecodeToml("", &dbConfig, &apiConfig)
+
+	if err.Error() != "Duplicated prefix db on struct DBConfig and dbWrap" {
+		t.Error("Failed to detect duplicate prefix")
+	}
+}
+
+func TestMissing(t *testing.T) {
+	var dbConfig DBConfig
+	var apiConfig APIConfig
+
+	err := DecodeTomlFile("", &dbConfig, &apiConfig)
+	if err == nil {
+		t.Error("Failed to detect missing file")
+	}
+
+	tomlData := `
+[db]
+host = "localhost"
+port = 3306
+username = "root"
+password = ""
+
+`
+
+	err = DecodeToml(tomlData, &dbConfig, &apiConfig)
+
+	if dbConfig.Host != "localhost" {
+		t.Errorf("Invalid host: %s", dbConfig.Host)
+	}
+
+	if dbConfig.Port != 3306 {
+		t.Errorf("Invalid port: %d", dbConfig.Port)
+	}
+
+	if err.Error() != "No config found for: type APIConfig with prefix [api]\n" {
+		t.Error("Fail to detect missing config")
 	}
 }
 
