@@ -1,5 +1,6 @@
 # dechoconf
 
+[![Build Status](https://travis-ci.org/Wuvist/dechoconf.svg?branch=master)](https://travis-ci.org/Wuvist/dechoconf)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Wuvist/dechoconf?v=1)](https://goreportcard.com/report/github.com/Wuvist/dechoconf)
 <a href='https://github.com/jpoles1/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-100%25-brightgreen.svg?longCache=true&style=flat)</a>
 [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
