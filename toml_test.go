@@ -54,7 +54,7 @@ func TestException(t *testing.T) {
 }
 
 func TestWrap(t *testing.T) {
-	file, err := ioutil.TempFile("", "prefix")
+	file, err := ioutil.TempFile("", "example.*.toml")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -84,7 +84,7 @@ password = ""
 	file.Close()
 
 	var dbConfig dbWrap
-	if err := DecodeTomlFile(file.Name(), &dbConfig); err != nil {
+	if err := DecodeFile(file.Name(), &dbConfig); err != nil {
 		t.Error(err)
 	}
 

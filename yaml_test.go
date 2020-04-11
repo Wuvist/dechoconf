@@ -18,8 +18,38 @@ db:
 api:
   url: https://localhost:8080
 `
+	var dbConfig DBConfig
+	var apiConfig APIConfig
+	if err := DecodeYaml(data, &dbConfig, &apiConfig); err != nil {
+		t.Error(err)
+	}
 
-	file, err := ioutil.TempFile("", "prefix")
+	if dbConfig.Host != "localhost" {
+		t.Errorf("Invalid host: %s", dbConfig.Host)
+	}
+
+	if dbConfig.Port != 3306 {
+		t.Errorf("Invalid port: %d", dbConfig.Port)
+	}
+
+	if apiConfig.URL != "https://localhost:8080" {
+		t.Errorf("Invalid url: %s", apiConfig.URL)
+	}
+}
+
+func TestYamlFile(t *testing.T) {
+	data := `
+db:
+  host: localhost
+  port: 3306
+  username: root
+  password: ""
+
+api:
+  url: https://localhost:8080
+`
+
+	file, err := ioutil.TempFile("", "example.*.yaml")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,7 +60,7 @@ api:
 
 	var dbConfig DBConfig
 	var apiConfig APIConfig
-	if err := DecodeYamlFile(file.Name(), &dbConfig, &apiConfig); err != nil {
+	if err := DecodeFile(file.Name(), &dbConfig, &apiConfig); err != nil {
 		t.Error(err)
 	}
 
