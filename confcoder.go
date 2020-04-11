@@ -68,23 +68,31 @@ func (c *ConfCoder) DecodeFile(path string, objs ...interface{}) (err error) {
 	return c.Decode(string(data), objs...)
 }
 
-func (c *ConfCoder) multiDecode(configs map[string]interface{}, objs ...interface{}) (err error) {
-	prefixToObj := make(map[string]interface{}, len(objs))
-	objToPrefix := make(map[interface{}]string, len(objs))
+func (c *ConfCoder) checkPrefix(objs ...interface{}) (prefixToObj map[string]interface{}, objToPrefix map[interface{}]string, err error) {
+	prefixToObj = make(map[string]interface{}, len(objs))
+	objToPrefix = make(map[interface{}]string, len(objs))
 	for _, obj := range objs {
 		tt := reflect.ValueOf(obj).Elem().Type()
 		prefixTag, found := tt.FieldByName("_")
 		if !found {
-			return errors.New("No `-` field is found on struct: " + tt.Name())
+			return nil, nil, errors.New("No `-` field is found on struct: " + tt.Name())
 		}
 		prefix := prefixTag.Tag.Get(c.prefixTagName)
 
 		if o, found := prefixToObj[prefix]; found {
-			return fmt.Errorf("Duplicated prefix %s on struct %s and %s", prefix,
+			return nil, nil, fmt.Errorf("Duplicated prefix %s on struct %s and %s", prefix,
 				reflect.ValueOf(o).Elem().Type().Name(), tt.Name())
 		}
 		prefixToObj[prefix] = obj
 		objToPrefix[obj] = prefix
+	}
+	return
+}
+
+func (c *ConfCoder) multiDecode(configs map[string]interface{}, objs ...interface{}) (err error) {
+	prefixToObj, objToPrefix, err := c.checkPrefix(objs...)
+	if err != nil {
+		return err
 	}
 
 	for configPrefix, configVal := range configs {
