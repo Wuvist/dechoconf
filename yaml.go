@@ -10,7 +10,7 @@ func decodeYaml(data string, obj interface{}) (err error) {
 	return yaml.Unmarshal([]byte(data), obj)
 }
 
-func encodeYaml(w io.Writer) encodeWriter {
+func encodeYaml(w io.Writer) encoder {
 	return yaml.NewEncoder(w)
 }
 

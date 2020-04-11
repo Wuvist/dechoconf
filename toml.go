@@ -11,7 +11,7 @@ func decodeToml(data string, obj interface{}) (err error) {
 	return
 }
 
-func encodeToml(w io.Writer) encodeWriter {
+func encodeToml(w io.Writer) encoder {
 	return toml.NewEncoder(w)
 }
 

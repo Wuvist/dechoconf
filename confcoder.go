@@ -14,23 +14,23 @@ var defaultPrefixTagName string = "prefix"
 
 type decodeObjFunc func(val interface{}, obj interface{}) error
 
-type encodeWriter interface {
+type encoder interface {
 	Encode(v interface{}) error
 }
 
-// ConfCoder accepts prefixTagName / decode / encorder func to make them support mulitple decode
+// ConfCoder accepts prefixTagName / decode / getEncoder func to make them support mulitple decode
 // according to their prefix tag defined in "-" field
+// Default prefixTagName is "prefix"
 type ConfCoder struct {
 	prefixTagName string
 	decode        func(string, interface{}) error
-	encoder       func(io.Writer) encodeWriter
+	getEncoder    func(io.Writer) encoder
 }
 
-func (c *ConfCoder) encodeCodec(obj interface{}) (result string, err error) {
+func (c *ConfCoder) encode(obj interface{}) (result string, err error) {
 	var buf bytes.Buffer
 
-	e := c.encoder(&buf)
-	err = e.Encode(obj)
+	err = c.getEncoder(&buf).Encode(obj)
 	if err != nil {
 		return
 	}
@@ -40,7 +40,7 @@ func (c *ConfCoder) encodeCodec(obj interface{}) (result string, err error) {
 
 func (c *ConfCoder) redecode(val interface{}, obj interface{}) error {
 	// todo: re-encode & decode is kind of stupid, but works for now
-	data, err := c.encodeCodec(val)
+	data, err := c.encode(val)
 	if err != nil {
 		return err
 	}
