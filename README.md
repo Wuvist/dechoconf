@@ -108,9 +108,9 @@ dechoconf depends on :
 ## Todo
 
 * [ ] Add version
-* [ ] Setup CI
+* [X] Setup CI
 * [ ] Confirm go version
 * [X] Support prefix chain
 * [X] Add yaml support
 * [X] Prefix validation
-* [ ] Support prefix customization
+* [X] Support prefix customization
