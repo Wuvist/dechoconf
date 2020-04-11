@@ -18,7 +18,7 @@ type encoder interface {
 	Encode(v interface{}) error
 }
 
-// ConfCoder accepts prefixTagName / decode / getEncoder func to make them support mulitple decode
+// ConfCoder accepts prefixTagName / decode / getEncoder func to make them support multiple decode
 // according to their prefix tag defined in "-" field
 // Default prefixTagName is "prefix"
 type ConfCoder struct {
