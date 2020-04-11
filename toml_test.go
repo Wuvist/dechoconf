@@ -47,7 +47,7 @@ func TestException(t *testing.T) {
 	}
 
 	var apiConfig config
-	err := TOMLConf.Decode(tomlData, &apiConfig)
+	err := DecodeToml(tomlData, &apiConfig)
 	if err == nil || err.Error() != "No `-` field is found on struct: config" {
 		t.Error(err)
 	}
@@ -103,7 +103,7 @@ func TestDuplicate(t *testing.T) {
 	}
 	var dbConfig DBConfig
 	var apiConfig dbWrap
-	err := TOMLConf.Decode("", &dbConfig, &apiConfig)
+	err := DecodeToml("", &dbConfig, &apiConfig)
 
 	if err.Error() != "Duplicated prefix db on struct DBConfig and dbWrap" {
 		t.Error("Failed to detect duplicate prefix")
@@ -114,7 +114,7 @@ func TestMissing(t *testing.T) {
 	var dbConfig DBConfig
 	var apiConfig APIConfig
 
-	err := TOMLConf.DecodeFile("", &dbConfig, &apiConfig)
+	err := DecodeTomlFile("", &dbConfig, &apiConfig)
 	if err == nil {
 		t.Error("Failed to detect missing file")
 	}
@@ -128,7 +128,7 @@ password = ""
 
 `
 
-	err = TOMLConf.Decode(tomlData, &dbConfig, &apiConfig)
+	err = DecodeToml(tomlData, &dbConfig, &apiConfig)
 
 	if dbConfig.Host != "localhost" {
 		t.Errorf("Invalid host: %s", dbConfig.Host)
@@ -157,7 +157,7 @@ url = "https://localhost:8080"
 
 	var dbConfig DBConfig
 	var apiConfig APIConfig
-	if err := TOMLConf.Decode(tomlData, &dbConfig, &apiConfig); err != nil {
+	if err := DecodeToml(tomlData, &dbConfig, &apiConfig); err != nil {
 		t.Error(err)
 	}
 
@@ -194,7 +194,7 @@ password = ""
 	var dbConfig DBConfig
 	var apiConfig BackendAPIConfig
 	var authConfig BackendAuthConfig
-	if err := TOMLConf.Decode(tomlData, &dbConfig, &apiConfig, &authConfig); err != nil {
+	if err := DecodeToml(tomlData, &dbConfig, &apiConfig, &authConfig); err != nil {
 		t.Error(err)
 	}
 

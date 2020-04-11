@@ -15,14 +15,20 @@ func getTomlEncoder(w io.Writer) encoder {
 	return toml.NewEncoder(w)
 }
 
-// TOMLConf is the ConfCoder instance handling toml configs
-var TOMLConf = NewTOMLConf(defaultPrefixTagName)
+var tomlCoder = &ConfCoder{
+	defaultPrefixTagName,
+	decodeToml,
+	getTomlEncoder,
+}
 
-// NewTOMLConf return is the ConfCoder instance handling toml configs with given prefixTagName
-func NewTOMLConf(prefixTagName string) *ConfCoder {
-	return &ConfCoder{
-		prefixTagName,
-		decodeToml,
-		getTomlEncoder,
-	}
+// DecodeToml accept toml data string, and unmarshal it to multiple structs
+// according to their prefix tag defined in "-" field
+func DecodeToml(data string, objs ...interface{}) (err error) {
+	return tomlCoder.Decode(data, objs...)
+}
+
+// DecodeTomlFile accept path of a toml file, and unmarshal it to multiple structs
+// according to their prefix tag defined in "-" field
+func DecodeTomlFile(path string, objs ...interface{}) (err error) {
+	return tomlCoder.DecodeFile(path, objs...)
 }
