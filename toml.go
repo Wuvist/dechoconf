@@ -11,14 +11,14 @@ func decodeToml(data string, obj interface{}) (err error) {
 	return
 }
 
-func encodeToml(w io.Writer) encoder {
+func getTomlEncoder(w io.Writer) encoder {
 	return toml.NewEncoder(w)
 }
 
 var tomlCoder = &ConfCoder{
 	defaultPrefixTagName,
 	decodeToml,
-	encodeToml,
+	getTomlEncoder,
 }
 
 // DecodeToml accept toml data string, and unmarshal it to multiple structs

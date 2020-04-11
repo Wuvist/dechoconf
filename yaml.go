@@ -10,14 +10,14 @@ func decodeYaml(data string, obj interface{}) (err error) {
 	return yaml.Unmarshal([]byte(data), obj)
 }
 
-func encodeYaml(w io.Writer) encoder {
+func getYamlEncoder(w io.Writer) encoder {
 	return yaml.NewEncoder(w)
 }
 
 var yamlCoder = &ConfCoder{
 	defaultPrefixTagName,
 	decodeYaml,
-	encodeYaml,
+	getYamlEncoder,
 }
 
 // DecodeYaml accept yaml data bytes, and unmarshal it to multiple structs
