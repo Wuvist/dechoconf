@@ -1,18 +1,74 @@
 package dechoconf
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"reflect"
 	"strings"
 )
 
-// PrefixTagName defines the tagname used in "-" field for prefix
-var PrefixTagName string = "prefix"
+var defaultPrefixTagName string = "prefix"
 
 type decodeObjFunc func(val interface{}, obj interface{}) error
 
-func decode(configs map[string]interface{}, decodeObj decodeObjFunc, objs ...interface{}) (err error) {
+type encodeWriter interface {
+	Encode(v interface{}) error
+}
+
+// ConfCoder accepts prefixTagName / decode / encorder func to make them support mulitple decode
+// according to their prefix tag defined in "-" field
+type ConfCoder struct {
+	prefixTagName string
+	decode        func(string, interface{}) error
+	encoder       func(io.Writer) encodeWriter
+}
+
+func (c *ConfCoder) encodeCodec(obj interface{}) (result string, err error) {
+	var buf bytes.Buffer
+
+	e := c.encoder(&buf)
+	err = e.Encode(obj)
+	if err != nil {
+		return
+	}
+
+	return buf.String(), nil
+}
+
+func (c *ConfCoder) redecode(val interface{}, obj interface{}) error {
+	// todo: re-encode & decode is kind of stupid, but works for now
+	data, err := c.encodeCodec(val)
+	if err != nil {
+		return err
+	}
+	err = c.decode(data, obj)
+	return err
+}
+
+// Decode data string, and unmarshal it to multiple structs
+func (c *ConfCoder) Decode(data string, objs ...interface{}) (err error) {
+	configs := make(map[string]interface{})
+	if err = c.decode(data, &configs); err != nil {
+		return err
+	}
+
+	return c.multiDecode(configs, objs...)
+}
+
+// DecodeFile accept path of a config file, and unmarshal it to multiple structs
+func (c *ConfCoder) DecodeFile(path string, objs ...interface{}) (err error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	return c.Decode(string(data), objs...)
+}
+
+func (c *ConfCoder) multiDecode(configs map[string]interface{}, objs ...interface{}) (err error) {
 	prefixToObj := make(map[string]interface{}, len(objs))
 	objToPrefix := make(map[interface{}]string, len(objs))
 	for _, obj := range objs {
@@ -21,7 +77,7 @@ func decode(configs map[string]interface{}, decodeObj decodeObjFunc, objs ...int
 		if !found {
 			return errors.New("No `-` field is found on struct: " + tt.Name())
 		}
-		prefix := prefixTag.Tag.Get(PrefixTagName)
+		prefix := prefixTag.Tag.Get(c.prefixTagName)
 
 		if o, found := prefixToObj[prefix]; found {
 			return fmt.Errorf("Duplicated prefix %s on struct %s and %s", prefix,
@@ -36,7 +92,7 @@ func decode(configs map[string]interface{}, decodeObj decodeObjFunc, objs ...int
 	FINDOBJ:
 		for obj, objPrefix := range objToPrefix {
 			if configPrefix == objPrefix {
-				if err != decodeObj(configVal, obj) {
+				if err != c.redecode(configVal, obj) {
 					return err
 				}
 
@@ -52,7 +108,7 @@ func decode(configs map[string]interface{}, decodeObj decodeObjFunc, objs ...int
 
 					for k, v := range val {
 						if objPrefix == currentPrefix+k {
-							if err != decodeObj(v, obj) {
+							if err != c.redecode(v, obj) {
 								return err
 							}
 
