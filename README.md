@@ -6,6 +6,16 @@
 [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
 [![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE)
 
+## Dependency
+
+dechoconf depends on :
+
+* go **1.11** and above
+* github.com/BurntSushi/toml v0.3.1
+* gopkg.in/yaml.v2 v2.2.8
+
+## Introduction
+
 `dechoconf` propose a convention when defining struct for unmarshalling config data: ```prefix:"decode_prefix"```.
 
 Assuming we have two module dependencies in our application: `db` and `api`, each requires it's own config:
@@ -99,19 +109,3 @@ func LoadConfigs() (appConfig app, apiConfig backendAPI, err error) {
 ```
 
 When adding new dependency, we just need to change `LoadConfigs` method signature, and pass new parameter to `dechoconf.DecodeTomlFile`. New returned config struct will be automactically wired to dependency.
-
-## Dependency
-
-dechoconf depends on :
-
-* github.com/BurntSushi/toml
-
-## Todo
-
-* [ ] Add version
-* [X] Setup CI
-* [ ] Confirm go version
-* [X] Support prefix chain
-* [X] Add yaml support
-* [X] Prefix validation
-* [X] Support prefix customization
