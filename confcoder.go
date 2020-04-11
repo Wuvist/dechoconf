@@ -44,8 +44,7 @@ func (c *ConfCoder) redecode(val interface{}, obj interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = c.decode(data, obj)
-	return err
+	return c.decode(data, obj)
 }
 
 // Decode data string, and unmarshal it to multiple structs
