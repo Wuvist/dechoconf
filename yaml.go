@@ -14,20 +14,14 @@ func getYamlEncoder(w io.Writer) encoder {
 	return yaml.NewEncoder(w)
 }
 
-var yamlCoder = &ConfCoder{
-	defaultPrefixTagName,
-	decodeYaml,
-	getYamlEncoder,
-}
+// YAMLConf is the ConfCoder instance handling yaml configs
+var YAMLConf = NewYAMLConf(defaultPrefixTagName)
 
-// DecodeYaml accept yaml data bytes, and unmarshal it to multiple structs
-// according to their prefix tag defined in "-" field
-func DecodeYaml(data string, objs ...interface{}) (err error) {
-	return yamlCoder.Decode(data, objs...)
-}
-
-// DecodeYamlFile accept path of a yaml file, and unmarshal it to multiple structs
-// according to their prefix tag defined in "-" field
-func DecodeYamlFile(path string, objs ...interface{}) (err error) {
-	return yamlCoder.DecodeFile(path, objs...)
+// NewYAMLConf return is the ConfCoder instance handling yaml configs with given prefixTagName
+func NewYAMLConf(prefixTagName string) *ConfCoder {
+	return &ConfCoder{
+		prefixTagName,
+		decodeYaml,
+		getYamlEncoder,
+	}
 }

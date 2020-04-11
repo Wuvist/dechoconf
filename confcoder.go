@@ -143,10 +143,10 @@ func (c *ConfCoder) multiDecode(configs map[string]interface{}, objs ...interfac
 // according to their prefix tag defined in "-" field
 func DecodeFile(path string, objs ...interface{}) (err error) {
 	if strings.HasSuffix(path, ".toml") {
-		return DecodeTomlFile(path, objs...)
+		return TOMLConf.DecodeFile(path, objs...)
 	}
 	if strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml") {
-		return DecodeYamlFile(path, objs...)
+		return YAMLConf.DecodeFile(path, objs...)
 	}
 
 	return fmt.Errorf("%s doesn't have toml / yaml file extensions", path)

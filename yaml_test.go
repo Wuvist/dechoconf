@@ -20,7 +20,7 @@ api:
 `
 	var dbConfig DBConfig
 	var apiConfig APIConfig
-	if err := DecodeYaml(data, &dbConfig, &apiConfig); err != nil {
+	if err := YAMLConf.Decode(data, &dbConfig, &apiConfig); err != nil {
 		t.Error(err)
 	}
 
