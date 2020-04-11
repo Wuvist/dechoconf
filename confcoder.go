@@ -99,7 +99,7 @@ func (c *ConfCoder) multiDecode(configs map[string]interface{}, objs ...interfac
 	FINDOBJ:
 		for obj, objPrefix := range objToPrefix {
 			if configPrefix == objPrefix {
-				if err != c.redecode(configVal, obj) {
+				if err = c.redecode(configVal, obj); err != nil {
 					return err
 				}
 
@@ -115,7 +115,7 @@ func (c *ConfCoder) multiDecode(configs map[string]interface{}, objs ...interfac
 
 					for k, v := range val {
 						if objPrefix == currentPrefix+k {
-							if err != c.redecode(v, obj) {
+							if err = c.redecode(v, obj); err != nil {
 								return err
 							}
 
